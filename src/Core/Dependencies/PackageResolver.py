@@ -7,18 +7,17 @@ Dependency = typing.Tuple("Dependency", [PackageName, VersionRequirement, Framew
 DependencySet = typing.Set[Dependency]
 
 
-with typing.NamedTuple("PackageDetails", [
+PackageDetails = typing.NamedTuple("PackageDetails", [
     ("Name", PackageName),
     ("Source", PackageSource),
     ("DownloadLink", str),
     ("LicenseUrl", str),
     ("Unlisted", bool),
     ("DirectDependencies", DependencySet)
-    ]) as PackageDetails:
-    pass
+    ])
 
 
-with typing.NamedTuple("ResolvedPackage", [
+ResolvedPackage = typing.NamedTuple("ResolvedPackage", [
     ("Name", PackageName),
     ("Version", SemVerInfo),
     ("Dependencies", DependencySet),
@@ -26,16 +25,24 @@ with typing.NamedTuple("ResolvedPackage", [
     ("IsRuntimeDependency", bool),
     ("Settings", InstallSettings),
     ("Source", PackageSource)
-    ]) as ResolvedPackage:
-    ResolvedPackage.__repr__ = types.MethodType(lambda s: "%s %s" % (s.Name, s.Version))
+    ])
+
+
+class ResolvedPackage(ResolvedPackage):
+
+    def __repr__(self):
+        return "%s %s" % (s.Name, s.Version)
+
     # TODO: needs transfer
-    ResolvedPackage.__format__ = types.MethodType(lambda s:
-            "%s\nDependencies -\n%s\nSource - %s\nInstall Settings\n%s" % (s.Name, s.Dependencies, s.Source, s.Settings)
-            )
-    ResolvedPackage.HasFrameworkRestrictions = \
+    def __format__(self):
+        return "%s\nDependencies -\n%s\nSource - %s\nInstall Settings\n%s" % (
+            s.Name, s.Dependencies, s.Source, s.Settings)
+
+    HasFrameworkRestrictions = \
         property(lambda s:
                  getExplicitRestriction(s.Settings.FrameworkRestrictions != FrameworkRestriction.NoRestriction
         ))
+
 
 PackageResolution = typing.Dict[PackageName, ResolvedPackage]
 
