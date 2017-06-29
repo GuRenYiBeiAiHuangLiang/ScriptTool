@@ -2,6 +2,8 @@
 import types
 import typing
 
+from Common.domain import PackageName
+
 
 Dependency = typing.Tuple("Dependency", [PackageName, VersionRequirement, FrameworkRestrictions])
 DependencySet = typing.Set[Dependency]
@@ -52,22 +54,20 @@ def isIncluded(restriction: FrameworkRestriction, dependency: Dependency) -> boo
     """
     _, _, dependencyRestrictions = dependency
     dependencyRestrictions = getExplicitRestriction(dependencyRestrictions)
-    if dependencyRestrictions == FrameworkRestriction.NoRestriction: return True
+    if dependencyRestrictions == FrameworkRestriction.NoRestriction:
+        return True
     else:
-        return bool(
-            restriction.RepresentedFrameworks | dependencyRestrictions.RepresentedFrameworks
-            )
+        return bool(restriction.RepresentedFrameworks | dependencyRestrictions.RepresentedFrameworks)
 
 
 def filterByRestrictions(restrictions: FrameworkRestrictions, dependencies: DependencySet) -> DependencySet:
     """
     """
     restrictions = getExplicitRestriction(restrictions)
-    if restrictions == FrameworkRestriction.NoRestriction: return dependencies
+    if restrictions == FrameworkRestriction.NoRestriction:
+        return dependencies
     else:
-        return DependencySet(
-            filter(isIncluded(restrictions), dependencies)
-        )
+        return DependencySet(filter(isIncluded(restrictions), dependencies))
 
 
 def isPackageCompatible(dependencies: DependencySet, package: ResolvedPackage) -> bool:
@@ -85,3 +85,7 @@ class DependencySetFilter:
     isIncluded = isIncluded
     filterByRestrictions = filterByRestrictions
     isPackageCompatible = isPackageCompatible
+
+
+def cleanupNames(model: PackageResolution) -> PackageResolution:
+    PackageResolution(map())
