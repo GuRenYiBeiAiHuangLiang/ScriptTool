@@ -124,5 +124,16 @@ class ResolutionRaw:
             union.add(lastPackageRequirement)
             return filter(lambda x: x.Name == lastPackageRequirement.Name, union)
 
-
     getConflicts = staticmethod(getConflicts)
+
+    def buildConflictReport(errorReport: StringBuilder, conflicts: TSet[PackageRequirement]):
+
+        def formatVR(vr: VersionRequirement):
+            s = vr.ToString()
+            return ">= 0" if s.isspace() else s
+
+        def formatPR(hasPrereleases: bool, vr: VersionRequirement):
+            if hasPrereleases and vr.PreReleases == PreReleaseStatus.No:
+                return "(not prereleases)"
+            else:
+                pass

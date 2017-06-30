@@ -7,3 +7,6 @@ TDict = typing.Dict
 TSet = typing.Set
 TTuple = typing.Tuple
 TNTuple = typing.NamedTuple
+
+
+StringBuilder = TList[str]
