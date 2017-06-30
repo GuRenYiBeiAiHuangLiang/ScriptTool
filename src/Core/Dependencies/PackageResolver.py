@@ -1,15 +1,14 @@
 
-import types
-import typing
 
+from Typedef import *
 from Common.domain import PackageName
 
 
-Dependency = typing.Tuple("Dependency", [PackageName, VersionRequirement, FrameworkRestrictions])
-DependencySet = typing.Set[Dependency]
+Dependency = TTuple[PackageName, VersionRequirement, FrameworkRestrictions]
+DependencySet = TSet[Dependency]
 
 
-PackageDetails = typing.NamedTuple("PackageDetails", [
+PackageDetails = TNTuple("PackageDetails", [
     ("Name", PackageName),
     ("Source", PackageSource),
     ("DownloadLink", str),
@@ -19,7 +18,7 @@ PackageDetails = typing.NamedTuple("PackageDetails", [
     ])
 
 
-ResolvedPackage = typing.NamedTuple("ResolvedPackage", [
+ResolvedPackage = TNTuple("ResolvedPackage", [
     ("Name", PackageName),
     ("Version", SemVerInfo),
     ("Dependencies", DependencySet),
@@ -46,7 +45,7 @@ class ResolvedPackage(ResolvedPackage):
         ))
 
 
-PackageResolution = typing.Dict[PackageName, ResolvedPackage]
+PackageResolution = TDict[PackageName, ResolvedPackage]
 
 
 def isIncluded(restriction: FrameworkRestriction, dependency: Dependency) -> bool:
@@ -88,4 +87,42 @@ class DependencySetFilter:
 
 
 def cleanupNames(model: PackageResolution) -> PackageResolution:
-    PackageResolution(map())
+    for _, package in PackageResolution.items():
+        package.Dependencies = DependencySet(map(lambda name, v, d: model[name].Name, v, d))
+    return model
+
+
+ResolverStep = TNTuple("ResolverStep", [
+    ("Relax", bool),
+    ("FilteredVersion", TDict[PackageName, TNTuple[TList[SemVerInfo, TList[PackageSource]], bool]]),
+    ("CurrentResolution", TDict[PackageName, ResolvedPackage]),
+    ("ClosedRequirements", TSet[PackageRequirement]),
+    ("OpenRequirements", TSet[PackageRequirement]),
+    ])
+
+
+ConflictInfo = TNTuple("ConflictInfo", [
+    ("ResolveStep", ResolverStep),
+    ("RequirementSet", TSet[PackageRequirement]),
+    ("Requirement", PackageRequirement),
+    ])
+
+
+class ResolutionRaw(object): pass
+class OkRaw(ResolutionRaw): pass
+class ConflictRaw(ConflictInfo): pass
+
+
+class ResolutionRaw:
+
+    def getConflicts(res: ResolutionRaw):
+        if isinstance(res, OkRaw):
+            return set()
+        elif isinstance(res, ConflictRaw):
+            currentStep, _, lastPackageRequirement = res
+            union = currentStep.ClosedRequirements | currentStep.OpenRequirements
+            union.add(lastPackageRequirement)
+            return filter(lambda x: x.Name == lastPackageRequirement.Name, union)
+
+
+    getConflicts = staticmethod(getConflicts)
